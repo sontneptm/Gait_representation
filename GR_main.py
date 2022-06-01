@@ -89,8 +89,6 @@ class MainModule():
             if(len(msg_as_list)==7): # rel_time, acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
                 rel_time= msg_as_list[0]
             elif(len(msg_as_list)<7 or len(msg_as_list)>7):
-                print("t1", self.one_msg[index])
-                print("t2", self.rest[index])
                 self.one_msg[index] = '' + self.rest[index]
                 continue
 
