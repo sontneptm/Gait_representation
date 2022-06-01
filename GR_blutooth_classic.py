@@ -2,7 +2,7 @@ from threading import Thread
 from typing import Any, Callable, Mapping, Tuple
 from bluetooth import *
 import time
-from datetime import datetime
+
 from multiprocessing import Process, Queue
 
 # Manager to Handler command
