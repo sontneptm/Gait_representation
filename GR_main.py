@@ -3,6 +3,10 @@ from GR_blutooth_classic import *
 #from GR_pose_detection import CameraManager
 from multiprocessing import Process, Queue
 
+class TimeStandard():
+    def __init__(self, ) -> None:
+        self.
+
 class MainModule():
     def __init__(self) -> None:
         self.bluetooth_queue = Queue()
@@ -53,7 +57,9 @@ class MainModule():
                 return []
 
             self.rest[index] = self.one_msg[index][self.one_msg[index].index('\r')+1:]
-            self.one_msg[index] = self.one_msg[index][self.one_msg[index].index(':')+1:self.one_msg[index].index('\r')] # start with colon
+            #self.one_msg[index] = self.one_msg[index][self.one_msg[index].index(':')+1:self.one_msg[index].index('\r')] # start with colon
+            self.one_msg[index] = self.one_msg[index][:self.one_msg[index].index('\r')] # start with colon
+            self.one_msg[index] = self.one_msg[index].replace("\n","")
 
             now = time.localtime()
             hour = now.tm_hour
