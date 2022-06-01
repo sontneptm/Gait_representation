@@ -5,7 +5,8 @@ from multiprocessing import Process, Queue
 
 class TimeStandard():
     def __init__(self, ) -> None:
-        self.
+        #self.
+        pass
 
 class MainModule():
     def __init__(self) -> None:

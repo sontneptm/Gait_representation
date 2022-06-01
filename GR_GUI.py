@@ -21,7 +21,7 @@ REQUEST_SAVE = 2003
 REQUEST_PLOT = 2004
 REQUEST_EXIT = 2010
 
-form_class = uic.loadUiType('Gait_representation\gait_representation.ui')[0]
+form_class = uic.loadUiType('.\gait_representation.ui')[0]
 
 
 class SignalManager(QObject):
