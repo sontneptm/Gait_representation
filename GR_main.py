@@ -2,11 +2,24 @@ from GR_GUI import *
 from GR_blutooth_classic import *
 #from GR_pose_detection import CameraManager
 from multiprocessing import Process, Queue
+import datetime as dt
+from datetime import datetime
+import numpy as np
 
 class TimeStandard():
-    def __init__(self, ) -> None:
-        #self.
-        pass
+    def __init__(self, abs_time, rel_time) -> None:
+        self.abs_time = abs_time
+        self.rel_time = int(rel_time)
+
+    def convert_rel_to_abs(self, rel_time)-> datetime.time:
+        if type(rel_time) != int:
+            rel_time = int(rel_time)
+
+        diff = int(np.abs(self.rel_time - rel_time))
+
+        rtn_time = self.abs_time + dt.timedelta(milliseconds=diff)
+
+        return rtn_time
 
 class MainModule():
     def __init__(self) -> None:
@@ -27,10 +40,11 @@ class MainModule():
         self.save_dir = './DATA/'
         
         self.one_msg = ["" for _ in range(7)]
+        self.standard_time_list = [None for _ in range(7)]
         self.msg_list = [[] for _ in range(7)]
         self.rest = [None for _ in range(7)]
         self.is_first_data = [True for _ in range(7)]
-        self.save_data_size = 40
+        self.save_data_size = 100
         # if you change save_data_size
         # you should change save_data_size in GR_GUI.py too
 
@@ -48,6 +62,15 @@ class MainModule():
 
         self.file=[None for _ in range(7)]
 
+    def make_time_msg(self, time):
+        hour = time.hour
+        min = time.minute
+        sec = time.second
+        ms = int(time.microsecond/1000)
+
+        return (str(hour)+':'+str(min)+':'+str(sec)+':'+str(ms) +'/')
+
+
     def handle_data(self, id, msg):
         index = id-1
         self.one_msg[index] += str(msg)
@@ -58,16 +81,31 @@ class MainModule():
                 return []
 
             self.rest[index] = self.one_msg[index][self.one_msg[index].index('\r')+1:]
-            #self.one_msg[index] = self.one_msg[index][self.one_msg[index].index(':')+1:self.one_msg[index].index('\r')] # start with colon
-            self.one_msg[index] = self.one_msg[index][:self.one_msg[index].index('\r')] # start with colon
+            self.one_msg[index] = self.one_msg[index][:self.one_msg[index].index('\r')] 
             self.one_msg[index] = self.one_msg[index].replace("\n","")
 
-            now = time.localtime()
-            hour = now.tm_hour
-            min = now.tm_min
-            sec = now.tm_sec
-            ms = int(datetime.now().microsecond/1000)
-            self.one_msg[index] = str(hour)+':'+str(min)+':'+str(sec)+':'+str(ms) +'/'+ self.one_msg[index]
+            msg_as_list = self.one_msg[index].split(",")
+
+            if(len(msg_as_list)==7): # rel_time, acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+                rel_time= msg_as_list[0]
+            elif(len(msg_as_list)<7 or len(msg_as_list)>7):
+                print("t1", self.one_msg[index])
+                print("t2", self.rest[index])
+                self.one_msg[index] = '' + self.rest[index]
+                continue
+
+            if self.standard_time_list[index] is None:
+                now = datetime.now()
+                time_msg = self.make_time_msg(now)
+                self.standard_time_list[index] = TimeStandard(abs_time=now, rel_time=rel_time)
+
+            elif self.standard_time_list[index] is not None:
+                now = self.standard_time_list[index].convert_rel_to_abs(rel_time)
+                time_msg = self.make_time_msg(now)
+
+            self.one_msg[index] = self.one_msg[index][self.one_msg[index].index(',')+1:]
+                    
+            self.one_msg[index] = time_msg + self.one_msg[index]
             self.msg_list[index].append(self.one_msg[index])
             self.one_msg[index] = '' + self.rest[index]
 
