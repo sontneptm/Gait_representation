@@ -173,10 +173,8 @@ class MainModule():
                         id = self.ble_msg[1]
                         data = self.ble_msg[2]
 
-                        if id <= 5:
-                            msg_list = self.handle_data(id, data)
-                        elif id>= 6:
-                            msg_list = self.handle_insole_data(id, data)
+                        if id <= 5: msg_list = self.handle_data(id, data)
+                        elif id>= 6: msg_list = self.handle_insole_data(id, data)
 
                         if len(msg_list) > 0:
                             self.m2g_msg = (SHOW_DATA, id, msg_list)
