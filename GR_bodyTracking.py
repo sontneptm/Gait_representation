@@ -1,6 +1,5 @@
 import sys
 import os
-from unittest.mock import ANY
 import cv2
 from datetime import datetime
 import math
@@ -9,11 +8,11 @@ import time
 
 sys.path.insert(1, '../')
 sys.path.append(os.path.dirname(os.path.abspath("pykinect_azure")))
-
 import pykinect_azure as pykinect
 
+
 subject_name = "test"
-file_name = "C:/Users/MSDL/Desktop/azure_data/" + subject_name +".csv"
+file_name = "DATA" + subject_name +".csv"
 
 def data_split(body_list):
     x_start_index = body_list.find("[")
@@ -34,21 +33,15 @@ def angle_calculate(hx, hy, kx, ky, ax, ay):
     return angle
 
 if __name__ == "__main__":
-
-    # Initialize the library, if the library is not found, add the library path as argument
     pykinect.initialize_libraries(track_body=True)
 
     # Modify camera configuration
     device_config = pykinect.default_configuration
-    device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_OFF
+    device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
     device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
     device_config.camera_fps = pykinect.K4A_FRAMES_PER_SECOND_30
-    #print(device_config)
 
-    # Start device
     device = pykinect.start_device(config=device_config)
-
-    # Start body tracker
     bodyTracker = pykinect.start_body_tracker()
 
     cv2.namedWindow('Depth image with skeleton',cv2.WINDOW_NORMAL)
