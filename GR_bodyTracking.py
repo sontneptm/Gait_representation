@@ -49,17 +49,15 @@ if __name__ == "__main__":
     f = open(file_name, 'w', newline='')
 
     while True:
-        start_time = datetime.now()
-        # Get capture
+        cap_time = datetime.now()
+        
         capture = device.update()
-
-        cap_time = time.time()
 
         # Get body tracker frame
         body_frame = bodyTracker.update()
 
         # Get the color depth image from the capture
-        ret, depth_color_image = capture.get_colored_depth_image()
+        ret, color_image = capture.get_color_image()
 
         # Get the colored body segmentation
         ret, body_image_color = body_frame.get_segmentation_image()
@@ -68,12 +66,6 @@ if __name__ == "__main__":
             body_str = str(body)
             body_list = body_str.split("\n")
 
-            at_time =datetime.now()
-
-            print("whole time:", at_time - start_time)
-            #print("cap time:", at_time - cap_time)
-            capture_time = datetime.now()
-            # print(capture_time)
 
             for j in range(len(body_list)):
                 joint_pos = body_list[j]                    #joint position name(ex.left hip Join info:)
@@ -94,7 +86,7 @@ if __name__ == "__main__":
                 angle = -1
                 
             #print("angle: ", angle)
-            data = [capture_time, angle]
+            data = [cap_time, angle]
             writer = csv.writer(f)
             writer.writerow(data)
 
@@ -102,10 +94,10 @@ if __name__ == "__main__":
             continue
 
         # Combine both images
-        combined_image = cv2.addWeighted(depth_color_image, 0.6, body_image_color, 0.4, 0)
+        #combined_image = cv2.addWeighted(depth_color_image, 0.6, body_image_color, 0.4, 0)
 
         # Draw the skeletons
-        combined_image = body_frame.draw_bodies(combined_image)
+        combined_image = body_frame.draw_bodies(color_image, pykinect.K4A_CALIBRATION_TYPE_COLOR)
 
         # Overlay body segmentation on depth image
         cv2.imshow('Depth image with skeleton',combined_image)
