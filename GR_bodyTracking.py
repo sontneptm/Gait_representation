@@ -2,110 +2,63 @@ import sys
 import os
 import cv2
 from datetime import datetime
-import math
-import csv
-import time
 
 sys.path.insert(1, '../')
 sys.path.append(os.path.dirname(os.path.abspath("pykinect_azure")))
 import pykinect_azure as pykinect
 
-
 subject_name = "test"
 file_name = "DATA" + subject_name +".csv"
 
-def data_split(body_list):
-    x_start_index = body_list.find("[")
-    x_end_index = body_list.find(",")
-    x = body_list[x_start_index+1 : x_end_index]
+class BodyTracker():
+    def __init__(self) -> None:
+        pykinect.initialize_libraries(track_body=True)
+        self.device, self.body_tracker = self.init_device()
+        self.get_body_frame()
 
-    y_start_index = body_list.find(",")
-    y_end_index = body_list.rfind(",")
-    y = body_list[y_start_index+1 : y_end_index]
-    
-    return x, y
+    def init_device(self):
+        # NFOV 2X2 binned : exposure time : 12.8ms
+        # NFOV 2X2 binned : working range : 0.5 ~ 5.46m 
+        device_config = pykinect.default_configuration
+        device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_720P
+        device_config.depth_mode = pykinect.K4A_DEPTH_MODE_NFOV_2X2BINNED
+        device_config.camera_fps = pykinect.K4A_FRAMES_PER_SECOND_30
 
-def angle_calculate(hx, hy, kx, ky, ax, ay):
-    o1 = math.atan2((float(hy)-float(ky)), (float(hx)-float(kx)))
-    o2 = math.atan2((float(ay)-float(ky)), (float(ax)-float(kx)))
-    angle = abs((o1-o2)*180/math.pi)
+        device = pykinect.start_device(config=device_config)
+        bodyTracker = pykinect.start_body_tracker()
 
-    return angle
+        return device, bodyTracker
+
+    def get_body_frame(self):
+        cv2.namedWindow('Depth image with skeleton',cv2.WINDOW_NORMAL)
+
+        while True:
+            cap_time = datetime.now()
+
+            capture = self.device.update()
+            body_frame = self.body_tracker.update()
+
+            ret, color_img = capture.get_color_image()
+            
+            if len(body_frame.get_bodies()) > 0:
+                target = body_frame.get_bodies()[0]
+                target_str = str(target)
+
+                print(target_str)
+
+            combined_image = body_frame.draw_bodies(color_img, pykinect.K4A_CALIBRATION_TYPE_COLOR)
+
+            try:
+                if ret:
+                    cv2.imshow('Depth image with skeleton',combined_image)
+            except Exception as e:
+                print(e)
+                pass
+
+            # Press q key to stop
+            if cv2.waitKey(1) == ord('q'):  
+                break
+
 
 if __name__ == "__main__":
-    pykinect.initialize_libraries(track_body=True)
-
-    # Modify camera configuration
-    device_config = pykinect.default_configuration
-    device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
-    device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
-    device_config.camera_fps = pykinect.K4A_FRAMES_PER_SECOND_30
-
-    device = pykinect.start_device(config=device_config)
-    bodyTracker = pykinect.start_body_tracker()
-
-    cv2.namedWindow('Depth image with skeleton',cv2.WINDOW_NORMAL)
-
-    f = open(file_name, 'w', newline='')
-
-    while True:
-        cap_time = datetime.now()
-        
-        capture = device.update()
-
-        # Get body tracker frame
-        body_frame = bodyTracker.update()
-
-        # Get the color depth image from the capture
-        ret, color_image = capture.get_color_image()
-
-        # Get the colored body segmentation
-        ret, body_image_color = body_frame.get_segmentation_image()
-
-        for body in body_frame.get_bodies():
-            body_str = str(body)
-            body_list = body_str.split("\n")
-
-
-            for j in range(len(body_list)):
-                joint_pos = body_list[j]                    #joint position name(ex.left hip Join info:)
-                if "left hip" in joint_pos or "left knee" in joint_pos or "left ankle" in joint_pos:                  
-                    joint_coordinate = body_list[j+1]       #joint coordinate (ex. position:[x, y, z])
-                    # print(joint_pos + joint_coordinate)
-
-                    if "hip" in joint_pos:
-                        hx, hy = data_split(joint_coordinate)
-                    elif "knee" in joint_pos:
-                        kx, ky = data_split(joint_coordinate)
-                    elif "ankle" in joint_pos:
-                        ax, ay = data_split(joint_coordinate)
-
-            angle = angle_calculate(hx, hy, kx, ky, ax, ay)
-            # print(angle)
-            if angle < 60:
-                angle = -1
-                
-            #print("angle: ", angle)
-            data = [cap_time, angle]
-            writer = csv.writer(f)
-            writer.writerow(data)
-
-        if not ret:
-            continue
-
-        # Combine both images
-        #combined_image = cv2.addWeighted(depth_color_image, 0.6, body_image_color, 0.4, 0)
-
-        # Draw the skeletons
-        combined_image = body_frame.draw_bodies(color_image, pykinect.K4A_CALIBRATION_TYPE_COLOR)
-
-        # Overlay body segmentation on depth image
-        cv2.imshow('Depth image with skeleton',combined_image)
-        
-        #total_time =  time.time() - start_time
-        #print("fps:", int(1./total_time))
-
-        # Press q key to stop
-        if cv2.waitKey(1) == ord('q'):  
-            f.close()
-            break
+    BodyTracker()
