@@ -29,6 +29,14 @@ class BodyTracker():
 
         return device, bodyTracker
 
+    def get_ankle_position(self, data:str, name:str="pelvis"):
+        start_index = data.find(name)
+        position_index = start_index + data[start_index:].find("[")
+        end_index = start_index + data[start_index:].find("orientation")
+        position = data[position_index:end_index]
+
+        print(name, "->", position)
+
     def get_body_frame(self):
         cv2.namedWindow('Depth image with skeleton',cv2.WINDOW_NORMAL)
 
@@ -44,7 +52,7 @@ class BodyTracker():
                 target = body_frame.get_bodies()[0]
                 target_str = str(target)
 
-                print(target_str)
+                self.get_ankle_position(data=target_str)
 
             combined_image = body_frame.draw_bodies(color_img, pykinect.K4A_CALIBRATION_TYPE_COLOR)
 
