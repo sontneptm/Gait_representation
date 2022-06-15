@@ -44,7 +44,7 @@ class MainModule():
         self.msg_list = [[] for _ in range(7)]
         self.rest = [None for _ in range(7)]
         self.is_first_data = [True for _ in range(7)]
-        self.save_data_size = 100
+        self.save_data_size = 20
         # if you change save_data_size
         # you should change save_data_size in GR_GUI.py too
 
@@ -69,7 +69,6 @@ class MainModule():
         ms = int(time.microsecond/1000)
 
         return (str(hour)+':'+str(min)+':'+str(sec)+':'+str(ms) +'/')
-
 
     def handle_data(self, id, msg):
         index = id-1

@@ -41,7 +41,7 @@ class MsdlWindow(QDialog, form_class):
         self.g2m_queue = g2m_queue
         self.device_cursor=-1
         self.sensor_cursor=-1
-        self.save_data_size = 100
+        self.save_data_size = 20
         # if you change save_data_size
         # you should change save_data_size in GR_main.py too
         self.sys_msg = ['none' for _ in range(7)]
