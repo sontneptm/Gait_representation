@@ -185,9 +185,8 @@ class MsdlWindow(QDialog, form_class):
             return
         elif self.device_cursor == 10:
             status_str = ''
-            for i in range(7):
+            for i in range(1):
                 status_str += self.status[i]
-                status_str += '\n'
             
             self.lb_status_detail.setText(status_str)
             return

@@ -1,5 +1,4 @@
 from threading import Thread
-from typing import Any, Callable, Mapping, Tuple
 from bluetooth import *
 import time
 
@@ -108,7 +107,6 @@ class BluetoothManager():
             while True:
                 tmp_msg = client_socket.recv(8096)
                 
-
                 if tmp_msg == b'':
                     handle_disconnection()
                     break
