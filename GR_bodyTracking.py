@@ -1,6 +1,7 @@
 import sys
 import os
 import cv2
+import csv
 from datetime import datetime
 
 sys.path.insert(1, '../')
@@ -9,6 +10,29 @@ import pykinect_azure as pykinect
 
 subject_name = "test"
 file_name = "DATA" + subject_name +".csv"
+
+names =[
+    "pelvis",
+    "spine - navel",
+    "spine - chest",
+    "neck",
+    "left clavicle",
+    "left shoulder",
+    "left elbow",
+    "left wrist",
+    "right clavicle",
+    "right shoulder",
+    "right elbow",
+    "right wrist",
+    "left hip",
+    "left knee",
+    "left ankle",
+    "left foot",
+    "right hip",
+    "right knee",
+    "right ankle",
+    "right foot"
+]
 
 class BodyTracker():
     def __init__(self) -> None:
@@ -33,15 +57,16 @@ class BodyTracker():
         start_index = data.find(name)
         position_index = start_index + data[start_index:].find("[")
         end_index = start_index + data[start_index:].find("orientation")
-        position = data[position_index:end_index]
+        position = data[position_index+1:end_index-3]
 
-        print(name, "->", position)
+        return {"joint":name, "position":position}
 
     def get_body_frame(self):
         cv2.namedWindow('Depth image with skeleton',cv2.WINDOW_NORMAL)
 
         while True:
             cap_time = datetime.now()
+            print(cap_time)
 
             capture = self.device.update()
             body_frame = self.body_tracker.update()
@@ -52,7 +77,12 @@ class BodyTracker():
                 target = body_frame.get_bodies()[0]
                 target_str = str(target)
 
-                self.get_ankle_position(data=target_str)
+                joints = []
+
+                for name in names:
+                    joints.append(self.get_ankle_position(data=target_str, name=name))
+
+                print(joints)
 
             combined_image = body_frame.draw_bodies(color_img, pykinect.K4A_CALIBRATION_TYPE_COLOR)
 
@@ -66,7 +96,6 @@ class BodyTracker():
             # Press q key to stop
             if cv2.waitKey(1) == ord('q'):  
                 break
-
 
 if __name__ == "__main__":
     BodyTracker()
