@@ -1,7 +1,9 @@
 from GR_GUI import *
 from GR_blutooth_classic import *
+from GR_bodyTracking import *
 #from GR_pose_detection import CameraManager
 from multiprocessing import Process, Queue
+from threading import Thread
 import datetime as dt
 from datetime import datetime
 import numpy as np
@@ -53,7 +55,12 @@ class MainModule():
         self.file_name = [None for _ in range(7)]
         self.file = [None for _ in range(7)]
 
+        Thread(target=self.init_body_tracker, args=()).start()
+
         self.main()
+
+    def init_body_tracker(self):
+        self.body_tracker = BodyTracker()
 
     def close_all_file(self):
         for d in self.file:
