@@ -37,7 +37,7 @@ names =[
 class BodyTracker():
     def __init__(self) -> None:
         pykinect.initialize_libraries(track_body=True)
-        self.file = 
+        self.file = open("./JOINT_DATA/joints.csv", "a")
         self.device, self.body_tracker = self.init_device()
         self.get_body_frame()
 
@@ -60,7 +60,7 @@ class BodyTracker():
         end_index = start_index + data[start_index:].find("orientation")
         position = data[position_index+1:end_index-3]
 
-        return {"joint":name, "position":position}
+        return (name +","+ position)
 
     def get_body_frame(self):
         cv2.namedWindow('Depth image with skeleton',cv2.WINDOW_NORMAL)
@@ -68,15 +68,12 @@ class BodyTracker():
         while True:
             try:
                 cap_time = datetime.now()
-                print(cap_time)
+                cap_time = cap_time.strftime("%H:%M:%S:%f")[:-3]
 
                 capture = self.device.update()
                 body_frame = self.body_tracker.update()
 
                 ret, color_img = capture.get_color_image()
-                print(color_img)
-                if (color_img is None): 
-                    continue
 
                 if len(body_frame.get_bodies()) > 0:
                     target = body_frame.get_bodies()[0]
@@ -86,8 +83,17 @@ class BodyTracker():
 
                     for name in names:
                         joints.append(self.get_ankle_position(data=target_str, name=name))
+                    
+                    write_str = ""
+                    write_str += (cap_time + ",")
 
-                    print(joints)
+                    for joint in joints:
+                        write_str += (joint+ ",")
+
+                    write_str += "\n"
+
+                    self.file.write(write_str)
+                        
 
                 combined_image = body_frame.draw_bodies(color_img, pykinect.K4A_CALIBRATION_TYPE_COLOR)
 
