@@ -37,6 +37,7 @@ names =[
 class BodyTracker():
     def __init__(self) -> None:
         pykinect.initialize_libraries(track_body=True)
+        self.file = 
         self.device, self.body_tracker = self.init_device()
         self.get_body_frame()
 
@@ -65,37 +66,43 @@ class BodyTracker():
         cv2.namedWindow('Depth image with skeleton',cv2.WINDOW_NORMAL)
 
         while True:
-            cap_time = datetime.now()
-            print(cap_time)
-
-            capture = self.device.update()
-            body_frame = self.body_tracker.update()
-
-            ret, color_img = capture.get_color_image()
-            
-            if len(body_frame.get_bodies()) > 0:
-                target = body_frame.get_bodies()[0]
-                target_str = str(target)
-
-                joints = []
-
-                for name in names:
-                    joints.append(self.get_ankle_position(data=target_str, name=name))
-
-                print(joints)
-
-            combined_image = body_frame.draw_bodies(color_img, pykinect.K4A_CALIBRATION_TYPE_COLOR)
-
             try:
-                if ret:
-                    cv2.imshow('Depth image with skeleton',combined_image)
+                cap_time = datetime.now()
+                print(cap_time)
+
+                capture = self.device.update()
+                body_frame = self.body_tracker.update()
+
+                ret, color_img = capture.get_color_image()
+                print(color_img)
+                if (color_img is None): 
+                    continue
+
+                if len(body_frame.get_bodies()) > 0:
+                    target = body_frame.get_bodies()[0]
+                    target_str = str(target)
+
+                    joints = []
+
+                    for name in names:
+                        joints.append(self.get_ankle_position(data=target_str, name=name))
+
+                    print(joints)
+
+                combined_image = body_frame.draw_bodies(color_img, pykinect.K4A_CALIBRATION_TYPE_COLOR)
+
+                try:
+                    if ret:
+                        cv2.imshow('Depth image with skeleton',combined_image)
+                except Exception as e:
+                    print(e)
+                    pass
+
+                # Press q key to stop
+                if cv2.waitKey(1) == ord('q'):  
+                    break
             except Exception as e:
                 print(e)
-                pass
-
-            # Press q key to stop
-            if cv2.waitKey(1) == ord('q'):  
-                break
 
 if __name__ == "__main__":
     BodyTracker()
